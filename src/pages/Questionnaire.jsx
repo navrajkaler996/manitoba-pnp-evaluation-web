@@ -1,7 +1,8 @@
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { data as allData } from "../data";
 import Button from "../components/Button";
 import manitobaImage from "../assets/manitoba-welcome-screen.png";
+import { ScrapedDataContext } from "../context/ScrappedDataContext";
 // Placeholder for the Button component
 
 // Placeholder for the Input component
@@ -19,6 +20,8 @@ const Input = ({ label, value, onChangeText, placeholder, numeric }) => (
 );
 
 const Questionnaire = () => {
+  const { scrapedData, loading, error } = useContext(ScrapedDataContext);
+
   // const router = useRouter(); // React Router equivalent is useNavigate
   const [selectedOption, setSelectedOption] = useState(null);
   const [selectedOptionNextId, setSelectedOptionNextId] = useState(null);
@@ -35,6 +38,10 @@ const Questionnaire = () => {
   });
 
   const [optionNotSelected, setOptionNotSelected] = useState(false);
+
+  useEffect(() => {
+    console.log(scrapedData, loading, error);
+  }, [scrapedData, loading, error]);
 
   useEffect(() => {
     if (nextQuestion) {
