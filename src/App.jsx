@@ -12,6 +12,7 @@ import {
 } from "react-router-dom";
 import Home from "./pages/Home";
 import Questionnaire from "./pages/Questionnaire";
+import Result from "./pages/Result";
 
 function App() {
   return (
@@ -23,6 +24,7 @@ function App() {
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/questionnaire" element={<Questionnaire />} />
+            <Route path="/result" element={<Result />} />
           </Routes>
         </div>
       </div>

@@ -65,9 +65,9 @@ export const data = [
     question_id: "STUDY_1",
     question: "What is the total duration of your studies?",
     options: [
-      { text: "1 year", next: "STUDY_2", points: 70 },
-      { text: "2 years", next: "STUDY_2", points: 110 },
-      { text: "3 years or more", next: "STUDY_2", points: 110 },
+      { text: "1 year", next: "STUDY_2" },
+      { text: "2 years", next: "STUDY_2" },
+      { text: "3 years or more", next: "STUDY_2" },
     ],
   },
   {
@@ -112,7 +112,7 @@ export const data = [
   {
     question_id: "STUDY_5",
     question:
-      "What describes your total education after high school? (including both, your home country and Canada",
+      "What describes your total education after high school? (including both, your home country if applicable, and Canada",
     options: [
       {
         text: "Master’s degree or Doctorate",
@@ -350,11 +350,12 @@ export const data = [
   {
     question_id: "JOB_2",
     question:
-      "Are you confident that you will find a fulltime job in Manitoba for skilled worker program?",
+      "Are you confident that you will find a fulltime in demand job in Manitoba for skilled worker program?",
     options: [
       {
         text: "Yes",
         next: "RISK_1",
+        points: 500,
       },
       {
         text: "No",
@@ -383,12 +384,27 @@ export const data = [
     options: [
       {
         text: "Yes",
-        next: "RESULT",
+        next: "AGE_1",
       },
       {
         text: "No",
-        next: "RESULT",
+        next: "AGE_1",
       },
+    ],
+  },
+  {
+    question_id: "AGE_1",
+    question: "How old are you?",
+    options: [
+      { text: "18", points: 20, next: "RESULT" },
+      { text: "19", points: 30, next: "RESULT" },
+      { text: "20", points: 40, next: "RESULT" },
+      { text: "21 to 45", points: 75, next: "RESULT" },
+      { text: "46", points: 40, next: "RESULT" },
+      { text: "47", points: 30, next: "RESULT" },
+      { text: "48", points: 20, next: "RESULT" },
+      { text: "49", points: 10, next: "RESULT" },
+      { text: "50 or older", points: 0, next: "RESULT" },
     ],
   },
 ];

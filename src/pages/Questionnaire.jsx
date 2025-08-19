@@ -3,6 +3,7 @@ import { data as allData } from "../data";
 import Button from "../components/Button";
 import manitobaImage from "../assets/manitoba-welcome-screen.png";
 import { ScrapedDataContext } from "../context/ScrappedDataContext";
+import { useNavigate } from "react-router-dom";
 // Placeholder for the Button component
 
 // Placeholder for the Input component
@@ -20,6 +21,7 @@ const Input = ({ label, value, onChangeText, placeholder, numeric }) => (
 );
 
 const Questionnaire = () => {
+  const navigate = useNavigate();
   const { scrapedData, loading, error } = useContext(ScrapedDataContext);
 
   // const router = useRouter(); // React Router equivalent is useNavigate
@@ -65,20 +67,19 @@ const Questionnaire = () => {
       finalInfoTemp.push({
         question: data[0].question,
         answer: data[0]?.options[selectedOption]?.text,
+        points: data[0]?.options[selectedOption]?.points ?? null,
       });
 
       let selectedOptionNextIdTemp = selectedOptionNextId;
       setFinalInfo(finalInfoTemp);
 
       if (selectedOptionNextId === "RESULT") {
-        // Replace with your React Router navigation logic:
-        // router.push({
-        //   pathname: "/(tabs)/result",
-        //   params: {
-        //     finalInfo: JSON.stringify(finalInfoTemp),
-        //   },
-        // });
-        console.log("Navigating to result page with data:", finalInfoTemp);
+        navigate("/result", {
+          state: {
+            finalInfo: JSON.stringify(finalInfoTemp),
+          },
+        });
+
         return;
       }
 
