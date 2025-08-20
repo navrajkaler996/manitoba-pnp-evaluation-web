@@ -13,12 +13,13 @@ import {
 import Home from "./pages/Home";
 import Questionnaire from "./pages/Questionnaire";
 import Result from "./pages/Result";
+import Navbar from "./components/Navbar";
 
 function App() {
   return (
     <BrowserRouter>
       <div className=" bg-white min-h-screen">
-        <nav className=" bg-white flex h-[60px] p-4 mb-8"></nav>
+        <Navbar />
 
         <div className="container mx-auto">
           <Routes>

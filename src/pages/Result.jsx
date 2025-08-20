@@ -253,20 +253,20 @@ const Result = () => {
 
         {/* Detail section */}
         <div className="w-full md:w-1/2">
-          {selectedIndex !== null ? (
-            <div className="mt-4 pl-6 pr-6 pt-4 pb-4  bg-white  rounded-md  h-full">
-              <h3 className="text-2xl font-semibold mb-2 text-center uppercase tracking-wide">
-                Details
-              </h3>
-              <p className="text-gray-700 text-sm leading-relaxed">
+          <div className="mt-4 pl-6 pr-6 pt-4 pb-4  bg-white  rounded-md  h-full">
+            <h3 className="text-2xl font-semibold mb-2 text-center uppercase tracking-wide">
+              Details
+            </h3>
+            {selectedIndex !== null ? (
+              <p className="text-gray-700 text-md leading-relaxed">
                 {analysisItems[selectedIndex].details}
               </p>
-            </div>
-          ) : (
-            <div className="mt-4 pl-6 pr-6 pt-4 pb-4  bg-gray-50 border border-dashed border-gray-300 rounded-md shadow-sm text-gray-500 text-center h-full flex items-center justify-center">
-              <p>Select an analysis point to view details.</p>
-            </div>
-          )}
+            ) : (
+              <div className="text-center text-gray-500 text-md">
+                Select an analysis point to view details.
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>
