@@ -155,8 +155,6 @@ const calculatePoints = (finalInfo) => {
       obj?.question === "Please provide the result of the test." && obj.answer
   );
 
-  console.log("language", language);
-
   let langaugePoints = language?.answer
     ? getFinalCLBLevel(language?.answer)
     : 0;
@@ -172,42 +170,110 @@ const calculatePoints = (finalInfo) => {
   return finalPoints;
 };
 
+const checkExpressEntryEligibility = (finalInfo) => {
+  finalInfo?.forEach((info) => {
+    if (
+      info?.question ===
+      "How many years of full-time work experience do you have in your home country?"
+    )
+      return true;
+  });
+
+  return false;
+};
+
+const checkStreamEligibility = (finalInfo) => {
+  let eligibleStreams = [];
+  let eligibleStreamsCategories = [];
+
+  finalInfo?.forEach((info) => {
+    if (info?.id === "STUDY_1") {
+      eligibleStreams?.push(
+        "Skilled Worker In Manitoba",
+
+        "International Educational stream"
+      );
+      eligibleStreamsCategories?.push(
+        "Completed post-secondary education in Manitoba"
+      );
+    }
+
+    if (info?.id === "RELATIVE_1" && info?.answer === "Yes") {
+      eligibleStreamsCategories?.push("Close relative in Manitoba selection");
+    }
+  });
+
+  return {
+    streams: eligibleStreams,
+    categories: eligibleStreamsCategories,
+  };
+};
+
 const Result = () => {
   const { state } = useLocation();
   const finalInfo = state?.finalInfo ? JSON.parse(state.finalInfo) : [];
 
   const [selectedIndex, setSelectedIndex] = useState(null);
+  const [totalScore, setTotalScore] = useState(0);
+  const [EEEligibility, setEEEligibility] = useState(false);
+  const [streamEligibility, setStreamEligibility] = useState({});
 
   useEffect(() => {
-    console.log("----", finalInfo);
-    if (finalInfo) console.log(calculatePoints(finalInfo));
+    if (finalInfo) {
+      const calculatedTotalPoints = calculatePoints(finalInfo);
+      const calculatedEEEligibilty = checkExpressEntryEligibility(finalInfo);
+
+      const calculatedStreamEligibility = checkStreamEligibility(finalInfo);
+
+      setTotalScore(calculatedTotalPoints);
+      setEEEligibility(calculatedEEEligibilty);
+      setStreamEligibility(calculatedStreamEligibility);
+    }
   }, []);
+
   return (
-    <div className="p-8 font-nunito-regular">
+    <div className="p-8 font-nunito-regular mt-8">
       <div className="flex flex-wrap">
         {/* Left side: the grid with cards */}
         <div className="w-full md:w-1/2 flex items-center">
-          <div className="grid grid-cols-2 gap-6 w-full mx-auto">
+          <div className="grid grid-cols-2 gap-4 w-full mx-auto">
             {/* Card 1 */}
-            <div className="bg-tint-light p-6 rounded shadow-lg flex flex-col items-center gap-2">
+            <div className="bg-tint-light p-6 rounded shadow-sm flex flex-col items-center gap-2">
               <p className="text-sm font-medium uppercase">Your score</p>
-              <p className="text-4xl font-bold text-gray-800">845</p>
+              <p className="text-4xl font-bold text-gray-800">{totalScore}</p>
             </div>
 
             {/* Card 2 */}
-            <div className="bg-tint-light p-6 rounded shadow-lg flex flex-col items-center gap-2">
+            <div className="bg-tint-light p-6 rounded shadow-sm flex flex-col items-center gap-2">
               <p className="text-sm font-medium uppercase">Express entry</p>
-              <p className="text-4xl">Eligible</p>
+              <p className="text-3xl font-bold uppercase">
+                {" "}
+                {EEEligibility ? "Eligible" : "Not eligible"}{" "}
+              </p>
             </div>
 
             {/* Full-width Card 3 */}
-            <div className="col-span-2 mt-4 p-6 bg-tint-light rounded shadow-lg text-left">
-              <h2 className="text-xl font-semibold text-gray-800 mb-2">
-                Eligible for:
+
+            <div className="col-span-2 p-6 bg-tint-light rounded shadow-sm text-left">
+              <h2 className="text-xl font-semibold text-gray-800 mb-2 text-center uppercase">
+                Streams eligible
               </h2>
               <ul className="space-y-2 list-disc list-inside text-gray-700">
-                <li>Skilled Worker in Manitoba</li>
-                <li>International Education Stream</li>
+                {streamEligibility?.streams?.length > 0 &&
+                  streamEligibility?.streams?.map((stream) => (
+                    <li>{stream}</li>
+                  ))}
+              </ul>
+            </div>
+            <div className="col-span-2 p-6 bg-tint-light rounded shadow-sm text-left">
+              <h2 className="text-xl font-semibold text-gray-800 mb-2 text-center  uppercase">
+                Categories elegible
+              </h2>
+              <ul className="space-y-2 list-disc list-inside text-gray-700">
+                {streamEligibility?.categories?.length > 0 &&
+                  streamEligibility?.categories?.map((category) => (
+                    <li>{category}</li>
+                  ))}
               </ul>
             </div>
           </div>

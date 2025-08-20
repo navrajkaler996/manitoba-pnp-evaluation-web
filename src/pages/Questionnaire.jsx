@@ -68,6 +68,7 @@ const Questionnaire = () => {
         question: data[0].question,
         answer: data[0]?.options[selectedOption]?.text,
         points: data[0]?.options[selectedOption]?.points ?? null,
+        id: data[0]?.question_id ?? null,
       });
 
       let selectedOptionNextIdTemp = selectedOptionNextId;
