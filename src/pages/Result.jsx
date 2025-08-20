@@ -1,5 +1,24 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+import GaugeComponent from "react-gauge-component";
 import { useLocation } from "react-router-dom";
+
+const analysisItems = [
+  {
+    analysis: "Score is low for skilled worker stream.",
+    details:
+      "Your overall score does not meet the minimum threshold for the Skilled Worker Stream. You may improve it by gaining more work experience, education, or language proficiency.",
+  },
+  {
+    analysis: "Express entry not eligible.",
+    details:
+      "You are currently not eligible for Express Entry due to an insufficient CLB score or missing qualifications. Review the criteria to understand your gaps.",
+  },
+  {
+    analysis: "Not enough work permit.",
+    details:
+      "Your current work permit duration or type does not meet the eligibility requirements. A longer or more suitable permit may be needed.",
+  },
+];
 
 const FINAL = [
   {
@@ -157,11 +176,101 @@ const Result = () => {
   const { state } = useLocation();
   const finalInfo = state?.finalInfo ? JSON.parse(state.finalInfo) : [];
 
+  const [selectedIndex, setSelectedIndex] = useState(null);
+
   useEffect(() => {
     console.log("----", finalInfo);
     if (finalInfo) console.log(calculatePoints(finalInfo));
   }, []);
-  return <div></div>;
+  return (
+    <div className="p-8 font-nunito-regular">
+      <div className="flex flex-wrap">
+        {/* Left side: the grid with cards */}
+        <div className="w-full md:w-1/2 flex items-center">
+          <div className="grid grid-cols-2 gap-6 w-full mx-auto">
+            {/* Card 1 */}
+            <div className="bg-tint-light p-6 rounded shadow-lg flex flex-col items-center gap-2">
+              <p className="text-sm font-medium uppercase">Your score</p>
+              <p className="text-4xl font-bold text-gray-800">845</p>
+            </div>
+
+            {/* Card 2 */}
+            <div className="bg-tint-light p-6 rounded shadow-lg flex flex-col items-center gap-2">
+              <p className="text-sm font-medium uppercase">Express entry</p>
+              <p className="text-4xl">Eligible</p>
+            </div>
+
+            {/* Full-width Card 3 */}
+            <div className="col-span-2 mt-4 p-6 bg-tint-light rounded shadow-lg text-left">
+              <h2 className="text-xl font-semibold text-gray-800 mb-2">
+                Eligible for:
+              </h2>
+              <ul className="space-y-2 list-disc list-inside text-gray-700">
+                <li>Skilled Worker in Manitoba</li>
+                <li>International Education Stream</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        {/* Right side: another div occupying 50% */}
+        <div className="w-full md:w-1/2">
+          <GaugeComponent
+            value={50} // current gauge value
+            arc={{
+              subArcs: [
+                { limit: 20, color: "#EA4228", showTick: false },
+                { limit: 40, color: "#F58B19", showTick: false },
+                { limit: 60, color: "#F5CD19", showTick: false },
+                { limit: 100, color: "#5BE12C", showTick: false },
+              ],
+            }}
+          />
+        </div>
+      </div>
+      <div className="flex flex-col md:flex-row gap-6 mt-8 w-full mx-auto">
+        {/* List section */}
+        <div className="w-full md:w-1/2">
+          <div className="mt-4 pl-6 pr-6 pt-4 pb-4 border border-gray-300 rounded-md bg-gray-10 shadow-sm">
+            <h3 className="text-xl font-semibold mb-2">Analysis result:</h3>
+            <ul className="list-none text-md space-y-1">
+              {analysisItems.map((item, index) => (
+                <li
+                  key={index}
+                  className={`cursor-pointer hover:text-yellow-900 transition-colors flex justify-between items-center px-2 py-1 rounded ${
+                    selectedIndex === index ? "font-semibold" : ""
+                  }`}
+                  onClick={() => setSelectedIndex(index)}>
+                  <span>{item.analysis}</span>
+                  <span className="text-yellow-700 text-sm">
+                    {selectedIndex === index ? "››" : "›"}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
+
+        {/* Detail section */}
+        <div className="w-full md:w-1/2">
+          {selectedIndex !== null ? (
+            <div className="mt-4 pl-6 pr-6 pt-4 pb-4  bg-white  rounded-md  h-full">
+              <h3 className="text-2xl font-semibold mb-2 text-center uppercase tracking-wide">
+                Details
+              </h3>
+              <p className="text-gray-700 text-sm leading-relaxed">
+                {analysisItems[selectedIndex].details}
+              </p>
+            </div>
+          ) : (
+            <div className="mt-4 pl-6 pr-6 pt-4 pb-4  bg-gray-50 border border-dashed border-gray-300 rounded-md shadow-sm text-gray-500 text-center h-full flex items-center justify-center">
+              <p>Select an analysis point to view details.</p>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
 };
 
 export default Result;
