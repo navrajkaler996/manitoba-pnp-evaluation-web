@@ -22,7 +22,6 @@ const Input = ({ label, value, onChangeText, placeholder, numeric }) => (
 
 const Questionnaire = () => {
   const navigate = useNavigate();
-  const { scrapedData, loading, error } = useContext(ScrapedDataContext);
 
   // const router = useRouter(); // React Router equivalent is useNavigate
   const [selectedOption, setSelectedOption] = useState(null);
@@ -40,10 +39,6 @@ const Questionnaire = () => {
   });
 
   const [optionNotSelected, setOptionNotSelected] = useState(false);
-
-  useEffect(() => {
-    console.log(scrapedData, loading, error);
-  }, [scrapedData, loading, error]);
 
   useEffect(() => {
     if (nextQuestion) {
@@ -144,8 +139,6 @@ const Questionnaire = () => {
       setOptionNotSelected(true);
     }
   };
-
-  console.log("finalInfo: ", finalInfo);
 
   return (
     <div

@@ -1,6 +1,12 @@
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import GaugeComponent from "react-gauge-component";
 import { useLocation } from "react-router-dom";
+import { ScrapedDataContext } from "../context/ScrappedDataContext";
+import {
+  generateAnalysisForCloseRelative,
+  generateAnalysisForScore,
+  generateText,
+} from "../../geminiService";
 
 const analysisItems = [
   {
@@ -209,14 +215,196 @@ const checkStreamEligibility = (finalInfo) => {
   };
 };
 
+const calculateFinalMeterScore = async (
+  totalScore,
+  EEEligibility,
+
+  streamEligibility,
+  scrapedDataInfo
+) => {
+  let SWM = false;
+  let SWMEducation = false;
+  let IES = false;
+  let closeRelative = false;
+  let score = false;
+
+  let finalMeterScore;
+
+  let analysis = [];
+
+  if (streamEligibility?.streams?.includes("Skilled Worker In Manitoba")) {
+    SWM = true;
+
+    if (
+      streamEligibility?.categories?.includes(
+        "Completed post-secondary education in Manitoba"
+      )
+    ) {
+      SWMEducation = true;
+    }
+  }
+
+  if (
+    streamEligibility?.streams?.includes("International Educational stream")
+  ) {
+    IES = true;
+  }
+
+  if (
+    streamEligibility?.categories?.includes(
+      "Close relative in Manitoba selection"
+    )
+  ) {
+    closeRelative = true;
+  }
+
+  if (totalScore >= scrapedDataInfo?.lowestScoreSWMEducation) {
+    score = true;
+  }
+
+  //Score analysis
+  if (SWMEducation && IES && score) {
+    let scoreAnalysis;
+
+    scoreAnalysis = {
+      heading: "Great score!",
+      invitationChances: "Very high",
+    };
+
+    const recomendations = await generateAnalysisForScore(
+      scoreAnalysis.invitationChances
+    );
+    scoreAnalysis.recomendations = recomendations;
+
+    analysis.push(scoreAnalysis);
+  } else if (SWMEducation && IES && !score) {
+    let scoreAnalysis;
+    if (totalScore >= 800) {
+      scoreAnalysis = {
+        heading: "Score is good. Could be improved.",
+        invitationChances: "High",
+      };
+    } else if (totalScore >= 780) {
+      scoreAnalysis = {
+        heading: "Average score. Needs improvement.",
+        invitationChances: "Average",
+      };
+
+      //   if(lowestScoreSWMEducation - 50 >= totalScore) analysis.scoreAnalysis.recomendations.unshift(` `)
+    } else if (totalScore >= 700) {
+      scoreAnalysis = {
+        heading: "Score is low. Needs action!",
+        invitationChances: "Low",
+      };
+    } else {
+      scoreAnalysis = {
+        heading: "Score is very low. Needs urgent action!",
+        invitationChances: "Very low",
+      };
+    }
+
+    const recomendations = await generateAnalysisForScore(
+      scoreAnalysis.invitationChances
+    );
+
+    scoreAnalysis.recomendations = recomendations;
+
+    analysis.push(scoreAnalysis);
+  }
+
+  let closeRelativeAnalysis = [];
+
+  if (SWMEducation && IES && score && closeRelative) {
+    closeRelativeAnalysis = {
+      heading:
+        "You qualify for 'Close relative in Manitoba selection'. Check the analysis.",
+      scoreLevel: "Very high",
+    };
+
+    const recomendations = await generateAnalysisForCloseRelative(
+      closeRelativeAnalysis.scoreLevel
+    );
+
+    closeRelativeAnalysis.recomendations = recomendations;
+
+    analysis.push(closeRelativeAnalysis);
+  } else if (SWMEducation && IES && !score && closeRelative) {
+    if (score > scrapedDataInfo?.lowestScoresCloseRelative) {
+      closeRelativeAnalysis = {
+        heading:
+          "You qualify for 'Close relative in Manitoba selection'. Check the analysis.",
+        scoreLevel: "Very high",
+      };
+
+      const recomendations = await generateAnalysisForCloseRelative(
+        closeRelativeAnalysis.scoreLevel
+      );
+
+      closeRelativeAnalysis.recomendations = recomendations;
+
+      analysis.push(closeRelativeAnalysis);
+    } else if (score > scrapedDataInfo?.lowestScoresCloseRelative - 25) {
+      closeRelativeAnalysis = {
+        heading:
+          "You qualify for 'Close relative in Manitoba selection'. Check the analysis.",
+        scoreLevel: "Average",
+      };
+      const recomendations = await generateAnalysisForCloseRelative(
+        closeRelativeAnalysis.scoreLevel
+      );
+
+      closeRelativeAnalysis.recomendations = recomendations;
+
+      analysis.push(closeRelativeAnalysis);
+    } else {
+      closeRelativeAnalysis = {
+        heading:
+          "You qualify for 'Close relative in Manitoba selection'. Check the analysis.",
+        scoreLevel: "Low",
+      };
+      const recomendations = await generateAnalysisForCloseRelative(
+        closeRelativeAnalysis.scoreLevel
+      );
+
+      closeRelativeAnalysis.recomendations = recomendations;
+
+      analysis.push(closeRelativeAnalysis);
+    }
+  }
+
+  //   analysis.scoreAnalysis = generateAnalysisForScore(810);
+
+  //   console.log(analysis);
+
+  //   if (SWM && SWMEducation && IES && closeRelative && score)
+  //     finalMeterScore = 95;
+  //   else if (SWM && SWMEducation && IES && !score) {
+  //     if (totalScore > 800 && closeRelative) finalMeterScore = 90;
+  //     else if (totalScore > 750 && closeRelative) finalMeterScore = 75;
+  //     else if (totalScore > 800 && !closeRelative) finalMeterScore = 80;
+  //     else if (totalScore > 750 && !closeRelative) finalMeterScore = 65;
+  //     else if (totalScore < 750 && totalScore > 700) finalMeterScore = 60;
+  //     else if (totalScore <= 700) finalMeterScore = 45;
+  //   } else if (SWM && !SWMEducation) {
+  //     if (totalScore < 700) finalMeterScore = 60;
+  //   }
+
+  return analysis;
+};
+
 const Result = () => {
   const { state } = useLocation();
   const finalInfo = state?.finalInfo ? JSON.parse(state.finalInfo) : [];
+  const { scrapedData, loading, error } = useContext(ScrapedDataContext);
 
   const [selectedIndex, setSelectedIndex] = useState(null);
   const [totalScore, setTotalScore] = useState(0);
   const [EEEligibility, setEEEligibility] = useState(false);
   const [streamEligibility, setStreamEligibility] = useState({});
+
+  const [scrapedDataInfo, setScrapedDataInfo] = useState(null);
+
+  const [analysis, setAnalysis] = useState([]);
 
   useEffect(() => {
     if (finalInfo) {
@@ -230,6 +418,68 @@ const Result = () => {
       setStreamEligibility(calculatedStreamEligibility);
     }
   }, []);
+
+  useEffect(() => {
+    if (scrapedData) {
+      const filteredScoresSWMEducation = scrapedData
+        .filter(
+          (item) =>
+            item.title === "Skilled Worker in Manitoba" &&
+            item.subtitle
+              .toLowerCase()
+              .includes("completed post-secondary education in manitoba") &&
+            item.score !== null
+        )
+        .map((item) => Number(item.score));
+
+      const filteredIES = scrapedData
+        .filter((item) => item.title === "International Education Stream")
+        .map((item) => Number(item));
+
+      const filteredCloseRelative = scrapedData
+        .filter((item) => item.subtitle.toLowerCase().includes("relative"))
+        .map((item) => (Number(item.score) != 0 ? Number(item.score) : null));
+
+      const lowestScoreSWMEducation = Math.min(...filteredScoresSWMEducation);
+      const totalSWMEducationDraws = filteredScoresSWMEducation?.length;
+      const totalIESDraws = filteredIES?.length;
+      const totalCloseRelativeDraws = filteredCloseRelative?.length;
+      const lowestScoresCloseRelative = Math.min(
+        ...filteredCloseRelative?.filter((score) => score > 0)
+      );
+
+      setScrapedDataInfo({
+        lowestScoreSWMEducation,
+        totalSWMEducationDraws,
+        totalIESDraws,
+        totalCloseRelativeDraws,
+        lowestScoresCloseRelative,
+      });
+    }
+  }, [scrapedData]);
+
+  useEffect(() => {
+    if (scrapedDataInfo && analysis?.length === 0) {
+      const getAnalysis = async () => {
+        try {
+          const analysis = await calculateFinalMeterScore(
+            totalScore,
+            EEEligibility,
+            streamEligibility,
+            scrapedDataInfo
+          );
+
+          setAnalysis(analysis);
+        } catch (error) {
+          console.error("Failed to calculate final meter score:", error);
+        }
+      };
+
+      getAnalysis();
+    }
+  }, [scrapedDataInfo]);
+
+  console.log(analysis);
 
   return (
     <div className="p-8 font-nunito-regular mt-8">
@@ -297,36 +547,96 @@ const Result = () => {
       <div className="flex flex-col md:flex-row gap-6 mt-8 w-full mx-auto">
         {/* List section */}
         <div className="w-full md:w-1/2">
-          <div className="mt-4 pl-6 pr-6 pt-4 pb-4 border border-gray-300 rounded-md bg-gray-10 shadow-sm">
+          <div className="mt-4 pl-6 pr-6 pt-4 pb-4 border border-gray-200 rounded-md bg-gray-100 ">
             <h3 className="text-xl font-semibold mb-2">Analysis result:</h3>
             <ul className="list-none text-md space-y-1">
-              {analysisItems.map((item, index) => (
-                <li
-                  key={index}
-                  className={`cursor-pointer hover:text-yellow-900 transition-colors flex justify-between items-center px-2 py-1 rounded ${
-                    selectedIndex === index ? "font-semibold" : ""
-                  }`}
-                  onClick={() => setSelectedIndex(index)}>
-                  <span>{item.analysis}</span>
-                  <span className="text-yellow-700 text-sm">
-                    {selectedIndex === index ? "››" : "›"}
-                  </span>
-                </li>
-              ))}
+              {analysis?.length > 0 &&
+                analysis?.map((item, index) => (
+                  <li
+                    key={index}
+                    className={`cursor-pointer hover:text-yellow-900 transition-colors flex justify-between items-center px-2 py-1 rounded ${
+                      selectedIndex === index ? "font-semibold" : ""
+                    }`}
+                    onClick={() => setSelectedIndex(index)}>
+                    <span>{item.heading}</span>
+                    <span className="text-yellow-700 text-sm">
+                      {selectedIndex === index ? "››" : "›"}
+                    </span>
+                  </li>
+                ))}
             </ul>
           </div>
         </div>
 
         {/* Detail section */}
         <div className="w-full md:w-1/2">
-          <div className="mt-4 pl-6 pr-6 pt-4 pb-4  bg-white  rounded-md  h-full">
+          <div className="mt-4 pl-6 pr-6 pt-4 pb-4  bg-gray-100 border border-gray-200  rounded-md  h-full">
             <h3 className="text-2xl font-semibold mb-2 text-center uppercase tracking-wide">
               Details
             </h3>
             {selectedIndex !== null ? (
-              <p className="text-gray-700 text-md leading-relaxed">
-                {analysisItems[selectedIndex].details}
-              </p>
+              <>
+                <section className="mb-4">
+                  <p className="text-gray-800 text-base font-medium">
+                    {analysis[selectedIndex]?.invitationChances && (
+                      <p className="text-gray-800 text-base font-medium">
+                        <span className="font-semibold">
+                          Invitation chances:
+                        </span>{" "}
+                        <span
+                          className={`inline-block px-3 py-1 rounded-md text-sm font-medium ${
+                            analysis[
+                              selectedIndex
+                            ]?.invitationChances?.toLowerCase() === "high"
+                              ? "bg-green-100 text-green-800"
+                              : analysis[
+                                  selectedIndex
+                                ]?.invitationChances?.toLowerCase() ===
+                                "average"
+                              ? "bg-yellow-100 text-yellow-800"
+                              : analysis[
+                                  selectedIndex
+                                ]?.invitationChances?.toLowerCase() === "low"
+                              ? "bg-orange-100 text-orange-800"
+                              : analysis[
+                                  selectedIndex
+                                ]?.invitationChances?.toLowerCase() ===
+                                "very low"
+                              ? "bg-red-100 text-red-800"
+                              : "bg-gray-100 text-gray-600"
+                          }`}>
+                          {analysis[selectedIndex]?.invitationChances ?? "N/A"}
+                        </span>
+                      </p>
+                    )}
+                  </p>
+                </section>
+
+                {typeof analysis[selectedIndex]?.recomendations == "object" &&
+                  analysis[selectedIndex]?.recomendations?.length > 0 && (
+                    <section>
+                      <p className="text-gray-800 text-base font-medium mb-2">
+                        <span className="font-semibold">Recommendations:</span>
+                      </p>
+                      <ul className="list-disc list-inside text-gray-700 space-y-1">
+                        {analysis[selectedIndex].recomendations.map(
+                          (recomendation, idx) => (
+                            <li key={idx}>{recomendation}</li>
+                          )
+                        )}
+                      </ul>
+                    </section>
+                  )}
+
+                {typeof analysis[selectedIndex]?.recomendations ===
+                  "string" && (
+                  <section>
+                    <p className="text-gray-800 text-base font-medium mb-2">
+                      {analysis[selectedIndex]?.recomendations}
+                    </p>
+                  </section>
+                )}
+              </>
             ) : (
               <div className="text-center text-gray-500 text-md">
                 Select an analysis point to view details.
