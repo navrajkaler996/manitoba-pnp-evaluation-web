@@ -66,7 +66,7 @@ export async function generateAnalysisForCloseRelative(scoreLevel) {
   try {
     const result = await model.generateContent(
       `
-        The value of invitation changes is: ${scoreLevel}.
+        The value of scoreLevel is: ${scoreLevel}.
         If value is very high, give one recomendation. 1. Your score is higher than the lowest score in Close relative in Manitoba selection in last 12 months. The chances of getting an invitation if the draw comes out are very high.
 
         If value is average, give one recomendations. 1. Though your score is not more than the score in Close relative in Manitoba selection in last 12 months, it is close enough. Chances are good you might get an invitation in future draws.
@@ -81,6 +81,41 @@ export async function generateAnalysisForCloseRelative(scoreLevel) {
     const text = response.text();
 
     return text;
+  } catch (error) {
+    console.error("Error generating content:", error);
+    return "Failed to generate content. Please try again.";
+  }
+}
+
+export async function generateAnalysisForWorkPermit(workPermitScore) {
+  try {
+    const result = await model.generateContent(
+      `workPermitScore
+        The value of workPermitScore is: ${workPermitScore}.
+        If value is very high, give one recomendation. 1. You will recieve 3 years of work permit and you are already elgible for Express entry. This is a perfect combination.
+
+        If value is high, give two recomendations. 1. You will recieve 3 years of work permit which is perfect but you are not eligible for Express entry.
+                                                   2. Processing time for Express Entry under PNP is 8 months while non-express entry is 20 months. It would save you a lot of time if you can find a job which could make you eligible for Express Entry!
+        If value is low, give three recomendations. 1. You are Express entry eligible which fastens your process but still one year is low considering the processing time.
+                                    2. Processing time for MPNP more than six months and express entry under PNP category is 8 months. These estimations are after you recieve invitation for MPNP and Express entry, respectively.
+                                    3. So 1 year of work permit is low. The best path is to have an employer that could support a close work permit.
+            
+            If value is very low, give four recomendations. 1. One year of work permit without express entry eligibility is very low considering longer processing time.
+                                    2. Processing time for MPNP more than six months and non-express entry is 20 months. These estimations are after you recieve invitation for MPNP.
+                                    3. So 1 year of work permit is very low. If your invitation chances are low, the best option is to take another one year course if you have not applied for PGWP.
+                                    4. If you have applied for PGWP, then make sure to find an employer that could support a closed work permit.
+           
+            
+                      
+             ********
+          You have to polish the recomendations yourself. Output should be an array of strings. Each string representing recomendation. There should be nothing else in the output. 
+      
+            `
+    );
+    const response = await result.response;
+    const text = response.text();
+
+    return filterOutput(text);
   } catch (error) {
     console.error("Error generating content:", error);
     return "Failed to generate content. Please try again.";
