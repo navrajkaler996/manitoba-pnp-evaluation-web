@@ -121,3 +121,121 @@ export async function generateAnalysisForWorkPermit(workPermitScore) {
     return "Failed to generate content. Please try again.";
   }
 }
+
+export async function generateAnalysisForJobUsingStudy(studyHistory) {
+  console.log(studyHistory.canadianEducationName, "aaaaa");
+  try {
+    const result = await model.generateContent(
+      `
+You are given the following study information:
+
+Study History:
+- Canadian Education Name: ${studyHistory?.canadianEducationName}
+
+Your tasks:
+
+1. Identify the most relevant NOC code(s) for the program "Post Graduate Diploma in Web Development".
+2. For each NOC code, return a short, clean summary of the job market strength for that code in Manitoba.
+
+You must:
+- Focus strictly on these three aspects only:
+  a) Labour shortage indicators
+  b) Projected job growth
+  c) Availability of job postings
+
+- Use reliable sources such as:
+  • jobbank.gc.ca
+  • Reddit (e.g., r/winnipeg, r/canadajobs) for real-world insight
+
+You must not:
+- Include salaries
+- Include job duties or descriptions
+- Include education or licensing requirements
+- Include any explanation or commentary
+
+📦 OUTPUT FORMAT:
+Return a **JavaScript-style array** of **objects**, where:
+
+- Each object represents one NOC code.
+- Each object must contain **two keys only**:
+  1. heading': a string in the format "NOC #### – Job Title"
+  2. analysis': an array of **exactly 3 objects**, each having one of the following keys:
+     - Labour shortage indicators'
+     - 'Projected job growth'
+     - 'Availability of job postings'
+  The value of each of these keys should be a short and polished sentence, focused only on Manitoba.
+
+The final output must be:
+- A plain JS-style array of objects
+- Contain no headings, no formatting, no commentary, and no extra text
+
+
+            `
+    );
+    const response = await result.response;
+    const text = response.text();
+
+    return filterOutput(text);
+  } catch (error) {
+    console.error("Error generating content:", error);
+    return "Failed to generate content. Please try again.";
+  }
+}
+
+export async function generateAnalysisForSWJob() {
+  try {
+    const result = await model.generateContent(
+      `
+      List the most frequently targeted National Occupation Classification (NOC) codes by the Manitoba Provincial Nominee Program (MPNP) in the last 2 years.
+      
+      Return the result as an array of objects in JSON format. Each object should have two keys:
+      1. "NOC code" — the NOC 2021 code
+      2. "Occupation Name" — the official occupation title
+      
+      Example format:
+      [
+        { "NOC Code": "31301", "occupation_name": "Registered nurses and psychiatric nurses" },
+        { "Occupation Name": "60020", "occupation_name": "Retail and wholesale trade managers" }
+      ]
+      
+      Do not include any explanation or text. Only return valid JSON and it should only contain array. NOTHING ELSE.
+      Include at least 15 relevant entries based on MPNP draws.
+      `
+    );
+    const response = await result.response;
+    const text = response.text();
+
+    return filterOutput(text);
+  } catch (error) {
+    console.error("Error generating content:", error);
+    return "Failed to generate content. Please try again.";
+  }
+}
+
+// export async function generateAnalysisForJobUsingWork(workHistory) {
+//   console.log(studyHistory.canadianEducationName, "aaaaa");
+//   try {
+//     const result = await model.generateContent(
+//       `
+//   Study History:
+// - Canadian Education Name: ${studyHistory?.canadianEducationName}
+
+// Questions:
+// 1) What are the possible NOC code(s) for "Post Graduate Diploma in Web Development"?
+// 2) For each NOC code, how strong is the job market in Manitoba? (Focus only on indicators such as labour shortage, projected growth outlook, availability of jobs—not salary or job responsibilities.)
+
+//              ********
+
+//           You have to polish the data yourself. Output should be an array of strings. There should be nothing else in the output.
+
+//             `
+//     );
+//     const response = await result.response;
+//     const text = response.text();
+
+//     return filterOutput(text);
+//   } catch (error) {
+//     console.error("Error generating content:", error);
+//     return "Failed to generate content. Please try again.";
+//   }
+// }

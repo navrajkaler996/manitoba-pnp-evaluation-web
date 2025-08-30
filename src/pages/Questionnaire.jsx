@@ -101,6 +101,7 @@ const Questionnaire = () => {
       finalInfoTemp.push({
         question: data[0].question,
         answer: input,
+        id: data[0]?.question_id ?? null,
       });
       const nextQuestionTemp = allData?.find(
         (d) => d.question_id === selectedOptionNextIdTemp

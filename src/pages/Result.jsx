@@ -8,6 +8,7 @@ import {
   generateText,
 } from "../../geminiService";
 import { calculateFinalMeterScore } from "../../utils/helper";
+import { QUESTIONNAIRE_CODE } from "../../utils/constants";
 
 const analysisItems = [
   {
@@ -219,11 +220,41 @@ const calculateWorkPermitDuration = (finalInfo) => {
   const result = finalInfo?.find((info) => info?.id === "STUDY_1");
 
   if (result) {
-    console.log("in", result.answer);
     return result.answer === "1 year" ? 1 : 3;
   }
 
   return null;
+};
+
+const checkJobSituation = (finalInfo) => {
+  let studyHistory = {};
+  let workHistory = {};
+  finalInfo?.forEach((info) => {
+    switch (info?.id) {
+      case "STUDY_1":
+        studyHistory.canadianEducationDuration = info?.answer;
+        break;
+      case "STUDY_2":
+        studyHistory.canadianEducationType = info?.answer;
+        break;
+      case "STUDY_3":
+        studyHistory.canadianEducationName = info?.answer;
+        break;
+      case "STUDY_6":
+        studyHistory.homeCountryEducation = info?.answer;
+        break;
+      case "WORK_2":
+        workHistory.homeCountryWorkDesignation = info?.answer;
+        break;
+      default:
+        break;
+    }
+  });
+
+  return {
+    studyHistory,
+    workHistory,
+  };
 };
 
 const Result = () => {
@@ -231,12 +262,15 @@ const Result = () => {
   const finalInfo = state?.finalInfo ? JSON.parse(state.finalInfo) : [];
   const { scrapedData, loading, error } = useContext(ScrapedDataContext);
 
+  //console.log(finalInfo);
+
   const [selectedIndex, setSelectedIndex] = useState(null);
   const [totalScore, setTotalScore] = useState(0);
   const [EEEligibility, setEEEligibility] = useState(false);
   const [streamEligibility, setStreamEligibility] = useState({});
   const [workPermitDuration, setWorkPermitDuration] = useState(0);
-
+  const [jobSituation, setJobSituation] = useState({});
+  const [fieldJobAnswer, setFieldJobAnswer] = useState(null);
   const [scrapedDataInfo, setScrapedDataInfo] = useState(null);
 
   const [analysis, setAnalysis] = useState([]);
@@ -250,10 +284,23 @@ const Result = () => {
       const calculatedWorkPermitDuration =
         calculateWorkPermitDuration(finalInfo);
 
+      const calculatedJobSituation = checkJobSituation(finalInfo);
+
       setTotalScore(calculatedTotalPoints);
       setEEEligibility(calculatedEEEligibilty);
       setStreamEligibility(calculatedStreamEligibility);
       setWorkPermitDuration(calculatedWorkPermitDuration);
+      setJobSituation(calculatedJobSituation);
+
+      const checkFieldJobAnswer = finalInfo?.find(
+        (item) => item?.id === "JOB_1"
+      )?.answer;
+
+      if (checkFieldJobAnswer === QUESTIONNAIRE_CODE?.FIELD_JOB_ANSWER_2) {
+        setFieldJobAnswer(false);
+      } else setFieldJobAnswer(true);
+
+      console.log("11111", checkFieldJobAnswer);
     }
   }, []);
 
@@ -305,7 +352,9 @@ const Result = () => {
             EEEligibility,
             streamEligibility,
             scrapedDataInfo,
-            workPermitDuration
+            workPermitDuration,
+            jobSituation,
+            fieldJobAnswer
           );
 
           setAnalysis(analysis);
@@ -318,7 +367,7 @@ const Result = () => {
     }
   }, [scrapedDataInfo]);
 
-  console.log(workPermitDuration, "s");
+  console.log("aaa", analysis);
 
   return (
     <div className="p-8 font-nunito-regular mt-8">
@@ -451,6 +500,69 @@ const Result = () => {
                   </p>
                 </section>
 
+                {analysis[selectedIndex]?.id === "jobAnalysis" &&
+                  analysis[selectedIndex]?.studyAnalysis?.length > 0 && (
+                    <div className="space-y-8 mt-6">
+                      {analysis[selectedIndex].studyAnalysis.map(
+                        (item, idx) => (
+                          <article key={idx} className="rounded-lg p-5 ">
+                            <h2 className="text-2xl font-semibold text-gray-800 mb-4 border-b pb-2">
+                              {item.heading}
+                            </h2>
+                            <div className="space-y-4">
+                              {item?.analysis?.map((ana, i) => (
+                                <section
+                                  key={i}
+                                  className="bg-gray-50 p-4 rounded-md">
+                                  {Object.entries(ana).map(([key, value]) => (
+                                    <p
+                                      key={key}
+                                      className="text-gray-700 text-base">
+                                      <span className="font-medium text-gray-900">
+                                        {key}:
+                                      </span>{" "}
+                                      {value}
+                                    </p>
+                                  ))}
+                                </section>
+                              ))}
+                            </div>
+                          </article>
+                        )
+                      )}
+                    </div>
+                  )}
+
+                {analysis[selectedIndex]?.id === "skilledWorkerAnalysis" &&
+                  Array.isArray(
+                    analysis[selectedIndex]?.skilledWorkerAnalysis
+                  ) &&
+                  analysis[selectedIndex].skilledWorkerAnalysis.length > 0 && (
+                    <div className="mt-6 space-y-8">
+                      <p>{analysis[selectedIndex]?.detail}</p>
+                      {analysis[selectedIndex].skilledWorkerAnalysis.map(
+                        (item, idx) => (
+                          <div
+                            key={idx}
+                            className="pb-4 border-b border-gray-300 last:border-b-0">
+                            <ul className="list-inside list-disc space-y-1 text-gray-700">
+                              {Object.entries(item).map(([key, value]) =>
+                                key !== "heading" ? (
+                                  <li key={key} className="flex">
+                                    <span className="font-semibold capitalize mr-2 min-w-[120px]">
+                                      {key}:
+                                    </span>
+                                    <span>{value}</span>
+                                  </li>
+                                ) : null
+                              )}
+                            </ul>
+                          </div>
+                        )
+                      )}
+                    </div>
+                  )}
+
                 {typeof analysis[selectedIndex]?.recomendations == "object" &&
                   analysis[selectedIndex]?.recomendations?.length > 0 && (
                     <section>
@@ -467,14 +579,15 @@ const Result = () => {
                     </section>
                   )}
 
-                {typeof analysis[selectedIndex]?.recomendations ===
-                  "string" && (
-                  <section>
-                    <p className="text-gray-800 text-base font-medium mb-2">
-                      {analysis[selectedIndex]?.recomendations}
-                    </p>
-                  </section>
-                )}
+                {analysis[selectedIndex]?.id !== "jobAnalysis" &&
+                  typeof analysis[selectedIndex]?.recomendations ===
+                    "string" && (
+                    <section>
+                      <p className="text-gray-800 text-base font-medium mb-2">
+                        {analysis[selectedIndex]?.recomendations}
+                      </p>
+                    </section>
+                  )}
               </>
             ) : (
               <div className="text-center text-gray-500 text-md">

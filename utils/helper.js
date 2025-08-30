@@ -1,6 +1,8 @@
 import {
   generateAnalysisForCloseRelative,
+  generateAnalysisForJobUsingStudy,
   generateAnalysisForScore,
+  generateAnalysisForSWJob,
   generateAnalysisForWorkPermit,
 } from "../geminiService";
 
@@ -21,7 +23,9 @@ export const calculateFinalMeterScore = async (
 
   streamEligibility,
   scrapedDataInfo,
-  workPermitDuration
+  workPermitDuration,
+  jobSituation,
+  fieldJobAnswer
 ) => {
   let SWM = false;
   let SWMEducation = false;
@@ -206,22 +210,40 @@ export const calculateFinalMeterScore = async (
   workPermitAnalysis.recomendations = recomendations;
 
   analysis.push(workPermitAnalysis);
-  //   analysis.scoreAnalysis = generateAnalysisForScore(810);
 
-  //   console.log(analysis);
+  //Job analysis
+  let jobAnalysis = [];
 
-  //   if (SWM && SWMEducation && IES && closeRelative && score)
-  //     finalMeterScore = 95;
-  //   else if (SWM && SWMEducation && IES && !score) {
-  //     if (totalScore > 800 && closeRelative) finalMeterScore = 90;
-  //     else if (totalScore > 750 && closeRelative) finalMeterScore = 75;
-  //     else if (totalScore > 800 && !closeRelative) finalMeterScore = 80;
-  //     else if (totalScore > 750 && !closeRelative) finalMeterScore = 65;
-  //     else if (totalScore < 750 && totalScore > 700) finalMeterScore = 60;
-  //     else if (totalScore <= 700) finalMeterScore = 45;
-  //   } else if (SWM && !SWMEducation) {
-  //     if (totalScore < 700) finalMeterScore = 60;
-  //   }
+  if (fieldJobAnswer) {
+    const studyAnalysis = await generateAnalysisForJobUsingStudy(
+      jobSituation?.studyHistory
+    );
 
+    // const workAnalysis = await generateAnalysisForJobUsingWork(
+    //   jobSituation?.workHistory
+    // );
+
+    //console.log("1", studyAnalysis);
+
+    jobAnalysis = {
+      id: "jobAnalysis",
+      heading: "Check your job situation!",
+      studyAnalysis: studyAnalysis,
+    };
+
+    analysis.push(jobAnalysis);
+  } else {
+    const skilledWorkerAnalysis = await generateAnalysisForSWJob();
+
+    jobAnalysis = {
+      id: "skilledWorkerAnalysis",
+      heading: "Check your job situation!",
+      detail:
+        "If you’re unsure about your current job prospects, consider focusing on occupations that have been frequently targeted by the Manitoba Provincial Nominee Program (MPNP) to improve your chances of success.",
+      skilledWorkerAnalysis: skilledWorkerAnalysis,
+    };
+
+    analysis.push(jobAnalysis);
+  }
   return analysis;
 };
