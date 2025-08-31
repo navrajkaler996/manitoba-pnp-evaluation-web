@@ -105,14 +105,14 @@ export const data = [
       },
       {
         text: "No",
-        next: "WORK_1",
+        next: "STUDY_7",
       },
     ],
   },
   {
     question_id: "STUDY_5",
     question:
-      "What describes your total education after high school? (including both, your home country if applicable, and Canada",
+      "What describes your total education after high school? (including both, your home country if applicable, and Canada)",
     options: [
       {
         text: "Master’s degree or Doctorate",
@@ -158,6 +158,43 @@ export const data = [
     ],
   },
   {
+    question_id: "STUDY_7",
+    question: "What describes your total education after high school?",
+    options: [
+      {
+        text: "Master’s degree or Doctorate",
+        next: "WORK_1",
+        points: 125,
+      },
+      {
+        text: "Two post-secondary programs of at least 2 years each",
+        next: "WORK_1",
+        points: 115,
+      },
+      {
+        text: "One post-secondary program of three years or more",
+        next: "WORK_1",
+        points: 110,
+      },
+      {
+        text: "One post-secondary program of two years",
+        next: "WORK_1",
+        points: 100,
+      },
+      {
+        text: "One-year post-secondary program",
+        next: "WORK_1",
+        points: 70,
+      },
+      {
+        text: "Trade Certificate",
+        next: "WORK_1",
+        points: 70,
+      },
+    ],
+  },
+
+  {
     question_id: "WORK_1",
     question: "Do you have any work experience in your home country?",
     options: [
@@ -174,7 +211,7 @@ export const data = [
   {
     question_id: "WORK_2",
     question:
-      "How many years of full-time work experience do you have in your home country?",
+      "How many years of TEER 0, 1, 2, 3, 4 full-time work experience do you have in your home country?",
     options: [
       {
         text: "Less than 1 year",
@@ -285,24 +322,24 @@ export const data = [
     question: "Which test are you planning to take?",
     options: [
       {
-        text: "CELPIP-General",
-        next: "LANGUAGE_6A",
+        text: "CELPIP-General (Canadian English Language Proficiency Index Program)",
+        next: "LANGUAGE_3A",
       },
       {
-        text: "IELTS General Training",
-        next: "LANGUAGE_6B",
+        text: "IELTS General Training (International English Language Testing System)",
+        next: "LANGUAGE_3B",
       },
       {
-        text: "PTE Core",
-        next: "LANGUAGE_6C",
+        text: "PTE Core (Pearson Test of English)",
+        next: "LANGUAGE_3C",
       },
       {
-        text: "TEF Canada",
-        next: "LANGUAGE_6D",
+        text: "TEF Canada (Test d’évaluation de français)",
+        next: "LANGUAGE_3D",
       },
       {
-        text: "TCF Canada",
-        next: "LANGUAGE_6E",
+        text: "TCF Canada (Test de connaissance du français)",
+        next: "LANGUAGE_3E",
       },
     ],
   },

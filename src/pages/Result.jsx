@@ -176,17 +176,27 @@ const calculatePoints = (finalInfo) => {
 
   return finalPoints;
 };
-
 const checkExpressEntryEligibility = (finalInfo) => {
-  finalInfo?.forEach((info) => {
+  return finalInfo?.some((info) => {
     if (
-      info?.question ===
-      "How many years of full-time work experience do you have in your home country?"
-    )
-      return true;
-  });
+      info?.id === "WORK_2" &&
+      info?.answer !== QUESTIONNAIRE_CODE.FORIEGN_WORK_EXPERIENCE_ANSWER_1
+    ) {
+      const language = finalInfo?.find(
+        (obj) =>
+          obj?.question === QUESTIONNAIRE_CODE.LANGUAGE_SCORE_QUESTION &&
+          obj.answer
+      );
 
-  return false;
+      const languagePoints = language?.answer
+        ? getFinalCLBLevel(language.answer)
+        : 0;
+
+      return Number(languagePoints) >= 88;
+    }
+
+    return false;
+  });
 };
 
 const checkStreamEligibility = (finalInfo) => {
@@ -262,7 +272,7 @@ const Result = () => {
   const finalInfo = state?.finalInfo ? JSON.parse(state.finalInfo) : [];
   const { scrapedData, loading, error } = useContext(ScrapedDataContext);
 
-  //console.log(finalInfo);
+  console.log(finalInfo);
 
   const [selectedIndex, setSelectedIndex] = useState(null);
   const [totalScore, setTotalScore] = useState(0);
@@ -279,7 +289,7 @@ const Result = () => {
     if (finalInfo) {
       const calculatedTotalPoints = calculatePoints(finalInfo);
       const calculatedEEEligibilty = checkExpressEntryEligibility(finalInfo);
-
+      console.log("asas", calculatedEEEligibilty);
       const calculatedStreamEligibility = checkStreamEligibility(finalInfo);
       const calculatedWorkPermitDuration =
         calculateWorkPermitDuration(finalInfo);
@@ -367,7 +377,7 @@ const Result = () => {
     }
   }, [scrapedDataInfo]);
 
-  console.log("aaa", analysis);
+  console.log("aaa", EEEligibility);
 
   return (
     <div className="p-8 font-nunito-regular mt-8">
